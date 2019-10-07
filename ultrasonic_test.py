@@ -9,8 +9,8 @@ stop_bit = 1
 GPIO.setmode(GPIO.BCM)
  
 #set GPIO Pins
-pin = 4 # GPIO_TRIGGER
-read_pin = 17 # GPIO_ECHO
+pin = 4
+read_pin = 17
  
 #set GPIO direction (IN / OUT)
 GPIO.setup(pin, GPIO.OUT)
@@ -90,8 +90,7 @@ def init():
     time.sleep(0.000122)
 
     for i in range(0, 72):
-        # writeByte
-        pass
+        write_byte(i)
     time.sleep(0.000011)
     reset_sensor()
     time.sleep(0.000023)
@@ -101,23 +100,24 @@ def init():
 
 
 def distance():
-    # set Trigger to HIGH
-    GPIO.output(GPIO_TRIGGER, True)
- 
-    # set Trigger after 0.01ms to LOW
+    # start measurement (pulldown)
+    set_low()
     time.sleep(0.00001)
-    GPIO.output(GPIO_TRIGGER, False)
+    set_high()
  
+    # source: https://tutorials-raspberrypi.com/raspberry-pi-ultrasonic-sensor-hc-sr04/
+    # updated delay time for sensor
+
     StartTime = time.time()
     StopTime = time.time()
  
     # save StartTime
-    while GPIO.input(GPIO_ECHO) == 0:
+    while GPIO.input(read_pin) == 0:
         StartTime = time.time()
         time.sleep(0.000104)
  
     # save time of arrival
-    while GPIO.input(GPIO_ECHO) == 1:
+    while GPIO.input(read_pin) == 1:
         StopTime = time.time()
         time.sleep(0.000104)
  
