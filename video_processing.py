@@ -32,8 +32,15 @@ class video_processor:
         #TODO: Read in the frame and process it
         if self.cam != None:
             readStatus, frame = self.cam.read()
+            label = object_detect()
             #TODO: Process frame
-            cv2.imshow("attentionChecker", frame)
+            #cv2.imshow("attentionChecker", frame)
+            image = cv2.putTest(frame, label, (105,105), cv2.FONT_HERSHEY_PLAIN,1,(255, 0, 0), 2)
+            cv2.imshow("attentionChecker", image)
+
+    def object_detect():
+        """return label"""
+        pass
 
 
 def main():
