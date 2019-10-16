@@ -1,0 +1,18 @@
+Hardware Log
+10/11/2019 - Received hardware from department: RPi Zero, resistors, camera, ultrasonic sensors
+           - Bought microSD for Raspbian download
+10/12/2019 - Set up RPi Zero with camera and sensors
+           - Each sensor needs a 1K and 2K resistor to work with RPi (5V -> 3V)
+           - Camera works, can read sensor signals
+           - Tried ultrasonic test code, did not calculate correct distances
+           - Wrote new function for sensor distance measurement using sleep to calculate time elapsed
+           - Tested all sensors with new distance function, none returned accurate distance measurements
+           - Tried Arduino with new cables, USB client port not responding? :(
+10/13/2019 - Sensor debugging: - increased sleep time between measurements
+                               - tried different trig/echo pins
+                               - used old time.time() function
+                               - cleaning up gpio after each measurement
+                               - printing all signals from echo pin
+           - Measurements still inaccurate ???
+10/15/2019 - Tested sensors with new wires at meeting, did not work
+           - Set up VNC on RPi, can be used with laptop + ethernet
