@@ -16,3 +16,4 @@ Hardware Log
            - Measurements still inaccurate ???
 10/15/2019 - Tested sensors with new wires at meeting, did not work
            - Set up VNC on RPi, can be used with laptop + ethernet
+10/17/2019 - Received camera screen from Brad.
