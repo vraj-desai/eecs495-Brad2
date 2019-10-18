@@ -1,2 +1,4 @@
 env/*
 yolo.h5
+.vscode/*
+*.avi
