@@ -35,7 +35,7 @@ class video_processor:
             label = object_detect()
             #TODO: Process frame
             #cv2.imshow("attentionChecker", frame)
-            image = cv2.putTest(frame, label, (105,105), cv2.FONT_HERSHEY_PLAIN,1,(255, 0, 0), 2)
+            image = cv2.putText(frame, label, (105,105), cv2.FONT_HERSHEY_PLAIN,1,(255, 0, 0), 2)
             cv2.imshow("attentionChecker", image)
 
     def object_detect():
