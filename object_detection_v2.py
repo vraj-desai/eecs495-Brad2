@@ -44,9 +44,9 @@ fps = FPS().start()
 # loop over the frames from the video stream
 while True:
 	# grab the frame from the threaded video stream and resize it
-	# to have a maximum width of 400 pixels
+	# to have a maximum width of 500 pixels
 	frame = vs.read()
-	frame = imutils.resize(frame, width=1000)
+	frame = imutils.resize(frame, width=600)
 
 	# grab the frame dimensions and convert it to a blob
 	(h, w) = frame.shape[:2]
