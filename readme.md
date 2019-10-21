@@ -7,7 +7,7 @@ To run use the following command:
 
  python3 ultrasonic.py
 
-Notice that it uses hardware such as ultrasonic senor and raspberry pi.
+Notice that it uses hardware such as ultrasonic sensor and raspberry pi.
 
 # Second feature
 
