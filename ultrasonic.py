@@ -22,21 +22,12 @@ def test():
     stop = time.time()
     while GPIO.input(GPIO_ECHO) == 1:
         stop = time.time()
-    print(start, stop, (stop - start) * 17150)
+    d = (stop - start) * 17150
+    if d < 400:
+        print(d, "cm")
+    else:
+        print("No obstacle in range")
     return
-
-    while True:
-        current = GPIO.input(GPIO_ECHO)
-        if current == 0:
-            stop = time.time()
-        if current != last:
-            if period != 0 and last == 1:
-                # print("Period: %f s" % period)
-                print(start, stop, (stop - start) * 17500)
-                return 0
-                period = 0
-        period += 1
-        last = current
 
 if __name__ == '__main__':
     try:
