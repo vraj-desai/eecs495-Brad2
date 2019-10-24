@@ -11,6 +11,67 @@ import argparse
 import imutils
 import time
 import cv2
+import random
+import RPi.GPIO as GPIO
+
+
+class UltrasonicSystem:
+    def __init__(self, gpio, num_sensors):
+        self.gpio = gpio
+        self.num_sensors = num_sensors
+        self.sensors = []
+        self.sensor_threads = []
+
+    def add_sensors(self):
+        for i in range(0, self.num_sensors):
+            self.sensors.append(Sensor(i + 1, 0, 0))
+        return
+
+    def spawn_sensor_threads(self):
+        while True:
+            for i in range(0, self.num_sensors):
+                self.sensor_threads.append(threading.Thread(target=self.sensors[i].distance, 
+                                                            daemon = True))
+            self.update_measurements()
+            self.sensor_threads.clear()
+        return
+
+    def update_measurements(self):
+        for sensor_thread in self.sensor_threads:
+            sensor_thread.start()
+        for sensor_thread in self.sensor_threads:
+            sensor_thread.join()
+        return
+
+    def write_measurements_to_frame(self, frame):
+        for i in range(0, self.num_sensors):
+            if self.sensors[i].measurement != -1:
+                cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 155), 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        return frame
+
+
+class Sensor:
+    def __init__(self, num, trigger, echo):
+        self.num = num
+        self.trigger = trigger
+        self.echo = echo
+        self.measurement = -1
+
+    def pin_setup(self):
+        GPIO.setup(self.trigger, GPIO.OUT)
+        GPIO.setup(self.echo, GPIO.IN)
+        return
+
+    def distance(self):
+        time.sleep(2)
+        d = random.randrange(10, 200, 1)
+        if d < 400:
+            self.measurement = d
+        else:
+            self.measurement = -1
+        return
+
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()

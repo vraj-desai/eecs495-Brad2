@@ -17,3 +17,8 @@ Hardware Log
 10/15/2019 - Tested sensors with new wires at meeting, did not work
            - Set up VNC on RPi, can be used with laptop + ethernet
 10/17/2019 - Received camera screen from Brad.
+10/20/2019 - Purchased Raspberry Pi 4
+           - Sensors work with new Pi
+10/21/2019 - Alpha release
+           - Pi camera stopped working
+           - Ordered new camera

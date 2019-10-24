@@ -2,3 +2,5 @@ env/*
 yolo.h5
 .vscode/*
 *.avi
+thread_test.py
+wsl_testing.py
