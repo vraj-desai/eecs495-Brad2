@@ -102,6 +102,12 @@ vs = VideoStream(src=0).start()
 time.sleep(2.0)
 fps = FPS().start()
 
+ultrasonic = UltrasonicSystem(0, 4)
+ultrasonic.add_sensors()
+ultrasonic_spawn = threading.Thread(target=ultrasonic.spawn_sensor_threads, daemon=True)
+ultrasonic_spawn.start()
+
+
 # loop over the frames from the video stream
 while True:
 	# grab the frame from the threaded video stream and resize it
@@ -143,7 +149,7 @@ while True:
 			y = startY - 15 if startY - 15 > 15 else startY + 15
 			cv2.putText(frame, label, (startX, y),
 				cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
-
+	frame = ultrasonic.write_measurements_to_frame(frame)
 	# show the output frame
 	cv2.imshow("Frame", frame)
 	key = cv2.waitKey(1) & 0xFF
