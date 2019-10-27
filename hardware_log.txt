@@ -22,3 +22,6 @@ Hardware Log
 10/21/2019 - Alpha release
            - Pi camera stopped working
            - Ordered new camera
+10/24/2019 - Ultrasonic classes added to main
+10/26/2019 - Three sensors wired without breadboard
+           - New camera works
