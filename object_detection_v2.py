@@ -55,7 +55,7 @@ class UltrasonicSystem:
         for i in range(0, self.num_sensors):
             if self.sensors[i].measurement != -1:
                 cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         return frame
 
 
