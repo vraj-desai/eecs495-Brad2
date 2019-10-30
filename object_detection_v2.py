@@ -52,10 +52,18 @@ class UltrasonicSystem:
 
     def write_measurements_to_frame(self, frame):
         """Annotate the frame with sensor readings."""
+        dist_flag = False
         for i in range(0, self.num_sensors):
             if self.sensors[i].measurement != -1:
-                cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
+                if self.sensors[i].measurement < 100:
+                    dist_flag = True
+                    cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                else:
+                    cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        if dist_flag:
+            cv2.putText(frame, "!", (800,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
         return frame
 
 
