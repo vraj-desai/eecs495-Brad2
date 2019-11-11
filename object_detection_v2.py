@@ -117,10 +117,11 @@ class Sensor:
 class Button:
     def __init__(self, pin):
         """Initialize the button with the GPIO pin."""
+        self.pin = pin
         GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
     def state(self):
-        return GPIO.input(pin)
+        return GPIO.input(self.pin)
 
 
 def cleanup(fps, vs):
@@ -137,9 +138,9 @@ def cleanup(fps, vs):
 
 # construct the argument parse and parse the arguments
 ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--prototxt", default="proto.txt",
+ap.add_argument("-p", "--prototxt", default="/home/pi/dev/EECS495-Brad2/proto.txt",
     help="path to Caffe 'deploy' prototxt file")
-ap.add_argument("-m", "--model", default="model",
+ap.add_argument("-m", "--model", default="/home/pi/dev/EECS495-Brad2/model",
     help="path to Caffe pre-trained model")
 ap.add_argument("-c", "--confidence", type=float, default=0.2,
     help="minimum probability to filter weak detections")
@@ -172,13 +173,13 @@ button = Button(7)
 try:
     print("Press button to start.")
     while button.state() == 0:
-        pass
+        time.sleep(0.1)
     # loop over the frames from the video stream
     while True:
         # grab the frame from the threaded video stream and resize it
         # to have a maximum width of 500 pixels
         frame = vs.read()
-        frame = imutils.resize(frame, width=600)
+        # frame = imutils.resize(frame, width=600)
 
         # grab the frame dimensions and convert it to a blob
         (h, w) = frame.shape[:2]
@@ -216,6 +217,9 @@ try:
                     cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
         frame = ultrasonic.write_measurements_to_frame(frame)
         # show the output frame
+        cv2.namedWindow("Frame", cv2.WND_PROP_FULLSCREEN)
+        cv2.setWindowProperty("Frame", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+        # cv2.resizeWindow("Frame", 640, 480)
         cv2.imshow("Frame", frame)
         key = cv2.waitKey(1) & 0xFF
 
@@ -223,8 +227,8 @@ try:
         if key == ord("q"):
             break
 
-        if button.state() == 0:
-            break
+        while button.state() == 0:
+            time.sleep(0.1)
 
         # update the FPS counter
         fps.update()
