@@ -114,6 +114,14 @@ class Sensor:
                 self.measurement = -1
             return
 
+class Button:
+    def __init__(self, pin):
+        """Initialize the button with the GPIO pin."""
+        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+
+    def state(self):
+        return GPIO.input(pin)
+
 
 def cleanup(fps, vs):
     # stop the timer and display FPS information
@@ -160,8 +168,11 @@ ultrasonic = UltrasonicSystem({1: [15, 14], 2: [24, 23], 3: [8, 25]}, 3)
 ultrasonic.add_sensors()
 ultrasonic_spawn = threading.Thread(target=ultrasonic.spawn_sensor_threads, daemon=True)
 ultrasonic_spawn.start()
-
+button = Button(7)
 try:
+    print("Press button to start.")
+    while button.state() == 0:
+        pass
     # loop over the frames from the video stream
     while True:
         # grab the frame from the threaded video stream and resize it
@@ -210,6 +221,9 @@ try:
 
         # if the `q` key was pressed, break from the loop
         if key == ord("q"):
+            break
+
+        if button.state() == 0:
             break
 
         # update the FPS counter
