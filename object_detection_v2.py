@@ -15,6 +15,17 @@ import random
 import threading
 import RPi.GPIO as GPIO
 
+prototxt = "/home/pi/dev/EECS495-Brad2/proto.txt"
+model = "/home/pi/dev/EECS495-Brad2/model"
+confidence_threshold = 0.2
+
+# initialize the list of class labels MobileNet SSD was trained to
+# detect, then generate a set of bounding box colors for each class
+CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
+    "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
+    "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
+    "sofa", "train", "tvmonitor"]
+COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
 
 class UltrasonicSystem:
     def __init__(self, gpio, num_sensors):
@@ -114,15 +125,6 @@ class Sensor:
                 self.measurement = -1
             return
 
-class Button:
-    def __init__(self, pin):
-        """Initialize the button with the GPIO pin."""
-        self.pin = pin
-        GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-
-    def state(self):
-        return GPIO.input(self.pin)
-
 
 def cleanup(fps, vs):
     # stop the timer and display FPS information
@@ -135,103 +137,82 @@ def cleanup(fps, vs):
     vs.stop()
     GPIO.cleanup()
 
+def object_detect(button_pin):
+    # load our serialized model from disk
+    print("[INFO] loading model...")
+    net = cv2.dnn.readNetFromCaffe(prototxt, model)
 
-# construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-p", "--prototxt", default="/home/pi/dev/EECS495-Brad2/proto.txt",
-    help="path to Caffe 'deploy' prototxt file")
-ap.add_argument("-m", "--model", default="/home/pi/dev/EECS495-Brad2/model",
-    help="path to Caffe pre-trained model")
-ap.add_argument("-c", "--confidence", type=float, default=0.2,
-    help="minimum probability to filter weak detections")
-args = vars(ap.parse_args())
+    # initialize the video stream, allow the cammera sensor to warmup,
+    # and initialize the FPS counter
+    print("[INFO] starting video stream...")
+    vs = VideoStream(src=0).start()
+    # time.sleep(2.0)
+    fps = FPS().start()
 
-# initialize the list of class labels MobileNet SSD was trained to
-# detect, then generate a set of bounding box colors for each class
-CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
-    "bottle", "bus", "car", "cat", "chair", "cow", "diningtable",
-    "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
-    "sofa", "train", "tvmonitor"]
-COLORS = np.random.uniform(0, 255, size=(len(CLASSES), 3))
+    ultrasonic = UltrasonicSystem({1: [15, 14], 2: [24, 23], 3: [8, 25]}, 3)
+    ultrasonic.add_sensors()
+    ultrasonic_spawn = threading.Thread(target=ultrasonic.spawn_sensor_threads, daemon=True)
+    ultrasonic_spawn.start()
+    GPIO.add_event_detect(button_pin, GPIO.RISING)
+    try:
+        # loop over the frames from the video stream
+        while True:
+            # grab the frame from the threaded video stream and resize it
+            # to have a maximum width of 500 pixels
+            frame = vs.read()
+            # frame = imutils.resize(frame, width=600)
 
-# load our serialized model from disk
-print("[INFO] loading model...")
-net = cv2.dnn.readNetFromCaffe(args["prototxt"], args["model"])
+            # grab the frame dimensions and convert it to a blob
+            (h, w) = frame.shape[:2]
+            blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
+                0.007843, (300, 300), 127.5)
 
-# initialize the video stream, allow the cammera sensor to warmup,
-# and initialize the FPS counter
-print("[INFO] starting video stream...")
-vs = VideoStream(src=0).start()
-time.sleep(2.0)
-fps = FPS().start()
+            # pass the blob through the network and obtain the detections and
+            # predictions
+            net.setInput(blob)
+            detections = net.forward()
 
-ultrasonic = UltrasonicSystem({1: [15, 14], 2: [24, 23], 3: [8, 25]}, 3)
-ultrasonic.add_sensors()
-ultrasonic_spawn = threading.Thread(target=ultrasonic.spawn_sensor_threads, daemon=True)
-ultrasonic_spawn.start()
-button = Button(7)
-try:
-    print("Press button to start.")
-    while button.state() == 0:
-        time.sleep(0.1)
-    # loop over the frames from the video stream
-    while True:
-        # grab the frame from the threaded video stream and resize it
-        # to have a maximum width of 500 pixels
-        frame = vs.read()
-        # frame = imutils.resize(frame, width=600)
+            # loop over the detections
+            for i in np.arange(0, detections.shape[2]):
+                # extract the confidence (i.e., probability) associated with
+                # the prediction
+                confidence = detections[0, 0, i, 2]
 
-        # grab the frame dimensions and convert it to a blob
-        (h, w) = frame.shape[:2]
-        blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
-            0.007843, (300, 300), 127.5)
+                # filter out weak detections by ensuring the `confidence` is
+                # greater than the minimum confidence
+                if confidence > confidence_threshold:
+                    # extract the index of the class label from the
+                    # `detections`, then compute the (x, y)-coordinates of
+                    # the bounding box for the object
+                    idx = int(detections[0, 0, i, 1])
+                    box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
+                    (startX, startY, endX, endY) = box.astype("int")
 
-        # pass the blob through the network and obtain the detections and
-        # predictions
-        net.setInput(blob)
-        detections = net.forward()
+                    # draw the prediction on the frame
+                    label = "{}: {:.2f}%".format(CLASSES[idx],
+                        confidence * 100)
+                    cv2.rectangle(frame, (startX, startY), (endX, endY),
+                        COLORS[idx], 2)
+                    y = startY - 15 if startY - 15 > 15 else startY + 15
+                    cv2.putText(frame, label, (startX, y),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
+            frame = ultrasonic.write_measurements_to_frame(frame)
+            # show the output frame
+            cv2.namedWindow("Frame", cv2.WND_PROP_FULLSCREEN)
+            cv2.setWindowProperty("Frame", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
+            # cv2.resizeWindow("Frame", 640, 480)
+            cv2.imshow("Frame", frame)
+            key = cv2.waitKey(1) & 0xFF
 
-        # loop over the detections
-        for i in np.arange(0, detections.shape[2]):
-            # extract the confidence (i.e., probability) associated with
-            # the prediction
-            confidence = detections[0, 0, i, 2]
+            # if the `q` key was pressed, break from the loop
+            if key == ord("q"):
+                break
 
-            # filter out weak detections by ensuring the `confidence` is
-            # greater than the minimum confidence
-            if confidence > args["confidence"]:
-                # extract the index of the class label from the
-                # `detections`, then compute the (x, y)-coordinates of
-                # the bounding box for the object
-                idx = int(detections[0, 0, i, 1])
-                box = detections[0, 0, i, 3:7] * np.array([w, h, w, h])
-                (startX, startY, endX, endY) = box.astype("int")
+            if GPIO.event_detected(button_pin):
+                break
 
-                # draw the prediction on the frame
-                label = "{}: {:.2f}%".format(CLASSES[idx],
-                    confidence * 100)
-                cv2.rectangle(frame, (startX, startY), (endX, endY),
-                    COLORS[idx], 2)
-                y = startY - 15 if startY - 15 > 15 else startY + 15
-                cv2.putText(frame, label, (startX, y),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.5, COLORS[idx], 2)
-        frame = ultrasonic.write_measurements_to_frame(frame)
-        # show the output frame
-        cv2.namedWindow("Frame", cv2.WND_PROP_FULLSCREEN)
-        cv2.setWindowProperty("Frame", cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
-        # cv2.resizeWindow("Frame", 640, 480)
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(1) & 0xFF
-
-        # if the `q` key was pressed, break from the loop
-        if key == ord("q"):
-            break
-
-        while button.state() == 0:
-            time.sleep(0.1)
-
-        # update the FPS counter
-        fps.update()
-    cleanup(fps, vs)
-except KeyboardInterrupt:
-    cleanup(fps, vs)
+            # update the FPS counter
+            fps.update()
+        cleanup(fps, vs)
+    except KeyboardInterrupt:
+        cleanup(fps, vs)
