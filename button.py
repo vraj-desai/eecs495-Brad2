@@ -17,7 +17,6 @@ try:
         # os.system("vcgencmd display_power 1")
         object_detection_v2.main()
         # os.system("vcgencmd display_power 0")
-        GPIO.cleanup()
 except KeyboardInterrupt:
     pass
     # os.system("vcgencmd display_power 1")

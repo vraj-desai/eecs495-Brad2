@@ -34,6 +34,7 @@ class UltrasonicSystem:
         self.num_sensors = num_sensors
         self.sensors = []
         self.sensor_threads = []
+        self.stop = False
 
     def add_sensors(self):
         """Initialize sensors with corresponding GPIO pins."""
@@ -51,6 +52,8 @@ class UltrasonicSystem:
                                                             daemon = True))
             self.update_measurements()
             self.sensor_threads.clear()
+            if self.stop:
+                break
         return
 
     def update_measurements(self):
@@ -66,7 +69,7 @@ class UltrasonicSystem:
         dist_flag = False
         for i in range(0, self.num_sensors):
             if self.sensors[i].measurement != -1:
-                if self.sensors[i].measurement < 100:
+                if self.sensors[i].measurement < 50:
                     dist_flag = True
                     cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
@@ -74,7 +77,7 @@ class UltrasonicSystem:
                     cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         if dist_flag:
-            cv2.putText(frame, "!", (800,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
+            cv2.putText(frame, "[!!]", (550,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
         return frame
 
 
@@ -131,13 +134,15 @@ def cleanup(fps, vs):
     fps.stop()
     print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
     print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
-
+    
     # do a bit of cleanup
     cv2.destroyAllWindows()
     vs.stop()
     GPIO.cleanup()
 
-def object_detect(button_pin):
+def main():
+    button_pin = 7
+    GPIO.setmode(GPIO.BCM)
     # load our serialized model from disk
     print("[INFO] loading model...")
     net = cv2.dnn.readNetFromCaffe(prototxt, model)
@@ -206,9 +211,13 @@ def object_detect(button_pin):
 
             # if the `q` key was pressed, break from the loop
             if key == ord("q"):
+                ultrasonic.stop = True
+                time.sleep(2)
                 break
 
             if GPIO.event_detected(button_pin):
+                ultrasonic.stop = True
+                time.sleep(2)
                 break
 
             # update the FPS counter
@@ -216,3 +225,6 @@ def object_detect(button_pin):
         cleanup(fps, vs)
     except KeyboardInterrupt:
         cleanup(fps, vs)
+
+if __name__ == "__main__":
+    main()
