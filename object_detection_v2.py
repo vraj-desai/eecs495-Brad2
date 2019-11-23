@@ -48,8 +48,7 @@ class UltrasonicSystem:
         """Create threads for simultaneous sensor polling."""
         while True:
             for i in range(0, self.num_sensors):
-                self.sensor_threads.append(threading.Thread(target=self.sensors[i].distance, 
-                                                            daemon = True))
+                self.sensor_threads.append(threading.Thread(target=self.sensors[i].distance))
             self.update_measurements()
             self.sensor_threads.clear()
             if self.stop:
