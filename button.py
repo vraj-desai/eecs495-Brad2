@@ -9,14 +9,15 @@ class Button:
         
 
 try:
+    os.system("vcgencmd display_power 0")
     while True:
         button = Button(7)
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(button.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
         GPIO.wait_for_edge(button.pin, GPIO.RISING)
-        # os.system("vcgencmd display_power 1")
+        os.system("vcgencmd display_power 1")
         object_detection_v2.main()
-        # os.system("vcgencmd display_power 0")
+        os.system("vcgencmd display_power 0")
 except KeyboardInterrupt:
     pass
     # os.system("vcgencmd display_power 1")

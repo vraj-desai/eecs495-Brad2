@@ -68,7 +68,7 @@ class UltrasonicSystem:
         dist_flag = False
         for i in range(0, self.num_sensors):
             if self.sensors[i].measurement != -1:
-                if self.sensors[i].measurement < 50:
+                if self.sensors[i].measurement < 100:
                     dist_flag = True
                     cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
@@ -106,7 +106,7 @@ class Sensor:
             return
         else:
             GPIO.output(self.trigger, False)
-            time.sleep(2)
+            time.sleep(1)
             GPIO.output(self.trigger, True)
             time.sleep(0.00001)
             GPIO.output(self.trigger, False)
@@ -153,7 +153,7 @@ def main():
     # time.sleep(2.0)
     fps = FPS().start()
 
-    ultrasonic = UltrasonicSystem({1: [15, 14], 2: [24, 23], 3: [8, 25]}, 3)
+    ultrasonic = UltrasonicSystem({1: [8, 25], 2: [24, 23], 3: [15, 14]}, 3)
     ultrasonic.add_sensors()
     ultrasonic_spawn = threading.Thread(target=ultrasonic.spawn_sensor_threads, daemon=True)
     ultrasonic_spawn.start()
