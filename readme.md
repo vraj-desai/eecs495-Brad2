@@ -1,19 +1,11 @@
-For alpha realease, we have implemented two skeletal features running independantly each other. 
+Back Me Up - BRAD 2
 
-# First feature
+For beta realease, we have implemented the whole system integrated with an on/off button. 
 
-First of them is a program to return distance to the closest object using ultrasonic sesnor. You need to install all the dependancies to run the program. 
-To run use the following command:
+The camera displays a live video feed with boxes around objects. The object detection program is trained to detect different objects in each frame such as sofa, bottles, people, etc. There are also three distance readings on the screen, which is from the ultrasonic sensors calculating the distances of the closest objects. 
 
- python3 ultrasonic.py
+To run our program, use the following command:
 
-Notice that it uses hardware such as ultrasonic sensor and raspberry pi.
+ python3 button.py
 
-# Second feature
-
-Second skeletal feature uses camera or webcam and uses trained model to detect differnet objects in each frame such as sofa, bottles, people etc.
-To run use following command:
-
- python3 object_detection_v2.py -m model -p proto.txt
-
-This also requires at least one video input device sucj as camera or webcam connected to the device it's runnnin on.
+Our program requires at least one video input device such as a camera or webcam connected to the device it's runnnin on.
