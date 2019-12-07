@@ -14,6 +14,7 @@ import cv2
 import random
 import threading
 import RPi.GPIO as GPIO
+import os
 
 prototxt = "/home/pi/dev/EECS495-Brad2/proto.txt"
 model = "/home/pi/dev/EECS495-Brad2/model"
@@ -77,6 +78,7 @@ class UltrasonicSystem:
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
         if dist_flag:
             cv2.putText(frame, "[!!]", (550,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
+            os.system('aplay /home/pi/dev/EECS495-Brad2/beep-07.wav')
         return frame
 
 
@@ -164,8 +166,8 @@ def main():
             # grab the frame from the threaded video stream and resize it
             # to have a maximum width of 500 pixels
             frame = vs.read()
+            frame = cv2.flip(frame, 1)
             # frame = imutils.resize(frame, width=600)
-
             # grab the frame dimensions and convert it to a blob
             (h, w) = frame.shape[:2]
             blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
