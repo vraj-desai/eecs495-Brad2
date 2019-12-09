@@ -72,10 +72,10 @@ class UltrasonicSystem:
                 if self.sensors[i].measurement < 100:
                     dist_flag = True
                     cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
                 else:
                     cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
         if dist_flag:
             cv2.putText(frame, "[!!]", (550,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
             os.system('aplay /home/pi/dev/EECS495-Brad2/beep-07.wav')
