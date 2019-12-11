@@ -72,10 +72,10 @@ class UltrasonicSystem:
                 if self.sensors[i].measurement < 100:
                     dist_flag = True
                     cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, .9, (0, 0, 255), 2)
                 else:
                     cv2.putText(frame, "{:.2f} cm".format(self.sensors[i].measurement), (15 + (i * 190), 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 255, 0), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, .9, (0, 255, 0), 2)
         if dist_flag:
             cv2.putText(frame, "[!!]", (550,50), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 255), 2)
             os.system('aplay /home/pi/dev/EECS495-Brad2/beep-07.wav')
@@ -152,7 +152,6 @@ def main():
     # and initialize the FPS counter
     print("[INFO] starting video stream...")
     vs = VideoStream(src=0).start()
-    # time.sleep(2.0)
     fps = FPS().start()
 
     ultrasonic = UltrasonicSystem({1: [8, 25], 2: [24, 23], 3: [15, 14]}, 3)
@@ -167,7 +166,6 @@ def main():
             # to have a maximum width of 500 pixels
             frame = vs.read()
             frame = cv2.flip(frame, 1)
-            # frame = imutils.resize(frame, width=600)
             # grab the frame dimensions and convert it to a blob
             (h, w) = frame.shape[:2]
             blob = cv2.dnn.blobFromImage(cv2.resize(frame, (300, 300)),
@@ -210,15 +208,9 @@ def main():
             cv2.imshow("Frame", frame)
             key = cv2.waitKey(1) & 0xFF
 
-            # if the `q` key was pressed, break from the loop
-            if key == ord("q"):
-                ultrasonic.stop = True
-                time.sleep(2)
-                break
-
             if GPIO.event_detected(button_pin):
                 ultrasonic.stop = True
-                time.sleep(2)
+                time.sleep(1)
                 break
 
             # update the FPS counter
